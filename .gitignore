@@ -1,0 +1,12 @@
+# Virtual environment
+renv/
+
+# Python cache
+**pycache**/
+*.py[cod]
+
+# VS Code
+.vscode/
+
+# Ruff
+.ruff_cache/
