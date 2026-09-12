@@ -7,6 +7,7 @@ from .frame import Frame
 
 
 class JointType(Enum):
+    FIXED = "fixed"
     REVOLUTE = "revolute"
 
 

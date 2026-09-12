@@ -28,6 +28,10 @@ class Robot2R(Robot):
             name = "link2",
             M = SE3.Trans(self.l1, 0, 0)
         )
+        link_end_frame = Frame(
+            name = "link_end",
+            M = SE3.Trans(self.l1 + self.l2, 0, 0)
+        )
 
         # Links
         link1 = Link(
@@ -40,6 +44,12 @@ class Robot2R(Robot):
             name = "link2",
             frame = link2_frame,
             length = self.l2,
+        )
+
+        link_end = Link(
+            name = "link_end",
+            frame = link_end_frame,
+            length = 0.0
         )
 
         # Joints
@@ -63,6 +73,16 @@ class Robot2R(Robot):
             q = self.q2,
         )
 
-        self.frames = [world_frame, link1_frame, link2_frame]
-        self.links = [link1, link2]
-        self.joints = [joint1, joint2]
+        # Joint 3
+        joint3 = Joint(
+            name = "joint3",
+            parent = link2_frame,
+            child = link_end_frame,
+            type = JointType.FIXED,
+            screw_axis = Twist3([0, -(self.l1 + self.l2), 0, 0, 0, 1]),
+            q = 0.0
+        )
+
+        self.frames = [world_frame, link1_frame, link2_frame, link_end_frame]
+        self.links = [link1, link2, link_end]
+        self.joints = [joint1, joint2, joint3]

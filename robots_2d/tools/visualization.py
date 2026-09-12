@@ -20,14 +20,30 @@ def visualize(robot: Robot, poses: dict[str,Frame]):
         p_start = T * np.array([0.0, 0.0, 0.0])
         p_end = T * np.array([link.length, 0.0, 0.0])
 
-        # Plot a line
-        ax.plot(
-            [p_start[0], p_end[0]],     # xs
-            [p_start[1], p_end[1]],     # ys
-            linewidth = 5,              # Line width
-            color = 'black',            # Color
-            zorder = 1                  # Draw in the back
-        )
+        # Draw the end-effector
+        if link.name == "link_end":
+
+            # Plot a circle
+                circle = plt.Circle(
+                    (p_start[0], p_start[1]),   # center coordinates
+                    radius = 0.075,             # Radius 
+                    color = 'green',            # Color
+                    fill = True,                # Fill circle
+                    zorder = 2                  # Draw in front
+                )
+                ax.add_patch(circle)
+
+        # Draw a normal link
+        else:
+
+            # Plot a line
+            ax.plot(
+                [p_start[0], p_end[0]],     # xs
+                [p_start[1], p_end[1]],     # ys
+                linewidth = 5,              # Line width
+                color = 'black',            # Color
+                zorder = 1                  # Draw in the back
+            )
 
     # Plot all joints
     for joint in robot.joints:
@@ -50,6 +66,11 @@ def visualize(robot: Robot, poses: dict[str,Frame]):
                 zorder = 2                  # Draw in front
             )
             ax.add_patch(circle)
+
+        elif joint.type == JointType.FIXED:
+
+            # Don't draw fixed joints
+            pass
 
         else:
             raise RuntimeError(
