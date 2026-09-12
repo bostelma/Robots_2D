@@ -1,4 +1,3 @@
-import numpy as np
 from robots.robot_2r import Robot2R
 
 from robots_2d.tools.visualization import visualize
@@ -7,12 +6,16 @@ if __name__ == "__main__":
 
     robot = Robot2R(
         l1 = 1.0,
-        l2 = 1.0,
-        q1 = np.pi / 4,
-        q2 = np.pi / 8,
+        l2 = 0.75,
     )
 
-    poses = robot.forward_kinematics()
+    # Compute Inverse Kinematics
+    robot.move_joints(
+        *robot.inverse_kinematics(
+            -1.0,                    # x-coordinate
+            1.0                     # y-coordinate
+        )
+    )
 
     visualize(
         robot,

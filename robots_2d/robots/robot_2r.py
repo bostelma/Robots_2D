@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import numpy as np
 from spatialmath import SE3, Twist3
 
 from robots_2d.classes.frame import Frame
@@ -86,3 +87,47 @@ class Robot2R(Robot):
         self.frames = [world_frame, link1_frame, link2_frame, link_end_frame]
         self.links = [link1, link2, link_end]
         self.joints = [joint1, joint2, joint3]
+
+    def inverse_kinematics(self, x, y):
+
+        dist = np.sqrt(x*x + y*y)
+
+        # No solution
+        if dist < self.l2 - self.l1 or dist > self.l1 + self.l2:
+
+            raise ValueError(
+                "No inverse kinematics solution for requested tip position!"
+            )
+
+        # One solution on the inner workspace boundary
+        elif dist == self.l1 - self.l2:
+
+            q1 = np.atan2(y, x)
+            q2 = np.pi
+
+            return q1, q2
+
+        # One solution on the outer workspace boundary
+        elif dist == self.l1 + self.l2:
+
+            q1 = np.atan2(y, x)
+            q2 = 0
+
+            return q1, q2
+
+        # Two solutions
+        else:
+
+            gamma = np.atan2(y, x)
+            alpha = np.acos((self.l1**2+dist**2-self.l2**2)/(2*self.l1*dist))
+            betha = np.acos((self.l1**2+self.l2**2-dist**2)/(2*self.l1*self.l2))
+
+            sol1 = gamma - alpha, np.pi - betha
+            sol2 = gamma + alpha, betha - np.pi
+
+            # Select the solution with smaller angle change of q1
+            if np.abs(sol1[0] - self.q1) < np.abs(sol2[0] - self.q1):
+                return sol1
+            else:
+                return sol2
+        

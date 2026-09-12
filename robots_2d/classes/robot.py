@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -16,6 +16,25 @@ class Robot(ABC):
     joints: list[Joint] = field(default_factory=list)
     links: list[Link] = field(default_factory=list)
 
+    def move_joints(self, *qs):
+
+        joint_angles = list(qs)
+
+        i = 0
+        for joint in self.joints:
+
+            if joint.type == JointType.FIXED:
+                continue
+
+            joint.q = joint_angles[i]
+            i += 1
+
+        if i != len(joint_angles):
+
+            raise ValueError(
+                "Number of given joint angles and movable joints don't match!"
+            )
+
     def forward_kinematics(self):
 
         # NOTE: This forward kinematics only holds for orderd joint
@@ -32,6 +51,10 @@ class Robot(ABC):
             poses[joint.child.name] = T * joint.child.M
 
         return poses
+
+    @abstractmethod
+    def inverse_kinematics(self, x, y):
+        pass
 
     def space_jacobian(self) -> np.ndarray:
 
