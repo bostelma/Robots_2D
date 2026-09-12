@@ -10,10 +10,17 @@ if __name__ == "__main__":
     )
 
     # Compute Inverse Kinematics
+    # robot.move_joints(
+    #     *robot.inverse_kinematics(
+    #         1.0,                    # x-coordinate
+    #         1.0                     # y-coordinate
+    #     )
+    # )
+
     robot.move_joints(
-        *robot.inverse_kinematics(
-            -1.0,                    # x-coordinate
-            1.0                     # y-coordinate
+        *robot.inverse_kinematics_num(
+            1.0,                    # x-coordinate
+            1.2                     # y-coordinate
         )
     )
 

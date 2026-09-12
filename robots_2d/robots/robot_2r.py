@@ -131,3 +131,49 @@ class Robot2R(Robot):
             else:
                 return sol2
         
+    def inverse_kinematics_num(self, x, y):
+
+        # Save the current joint configuration
+        q_original = np.array([
+            self.joints[0].q,
+            self.joints[1].q
+        ])
+
+        q = q_original.copy()
+
+        # Desired end-effector pose
+        Tsd = SE3.Trans(x, y, 0)
+
+        while True:
+
+            # Current end-effector pose
+            Tsb = self.forward_kinematics()['link_end']
+
+            # Body-frame pose error
+            Vb = (Tsb.inv() @ Tsd).log()
+
+            # Only consider x/y translational error
+            v = Vb[:2, 3]
+
+            # Check convergence
+            if np.linalg.norm(v) <= 0.1:
+                break
+
+            # Body Jacobian
+            Jb = self.body_jacobian()
+
+            # Only x/y translational component
+            Jv = Jb[:2, :]
+
+            # Newton-Raphson update
+            q += np.linalg.pinv(Jv) @ v
+
+            # Apply updated joint configuration
+            self.joints[0].q = q[0]
+            self.joints[1].q = q[1]
+
+        # Restore original robot configuration
+        self.joints[0].q = q_original[0]
+        self.joints[1].q = q_original[1]
+
+        return q
