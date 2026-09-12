@@ -14,4 +14,7 @@ if __name__ == "__main__":
 
     poses = robot.forward_kinematics()
 
-    visualize(robot, poses)
+    visualize(
+        robot,
+        me = True
+    )

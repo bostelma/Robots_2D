@@ -1,12 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Ellipse
 
-from robots_2d.classes.frame import Frame
 from robots_2d.classes.joint import JointType
 from robots_2d.classes.robot import Robot
 
 
-def visualize(robot: Robot, poses: dict[str,Frame]):
+def visualize(robot: Robot, me: bool = False):
+
+    poses = robot.forward_kinematics()
 
     _, ax = plt.subplots()
 
@@ -76,6 +78,22 @@ def visualize(robot: Robot, poses: dict[str,Frame]):
             raise RuntimeError(
                 f"Plotting of joint type {joint.type} no implemented yet!"    
             )
+
+    # Plot manipulability ellipse
+    if me:
+        center, width, height, angle = robot.manipulability_ellipse()
+
+        ellipse = Ellipse(
+            center,              
+            width = width,
+            height = height,
+            angle = angle,
+            color = 'green',
+            fill = False,
+            zorder = 2
+        )
+        ax.add_patch(ellipse)
+         
 
     # Adjust plotting parameters
     ax.axis("off")
