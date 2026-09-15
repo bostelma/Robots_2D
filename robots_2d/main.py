@@ -63,7 +63,8 @@ if __name__ == "__main__":
             q_start = q_start,
             q_end = q_end,
             T = 5,
-            f = 50
+            f = 50,
+            time_scaling = 'poly3'      # Select from: {linear, poly3, poly5}
         )
 
         animate_robot(
@@ -82,7 +83,8 @@ if __name__ == "__main__":
             X_start = X_start,
             X_end = X_end,
             T = 1,
-            f = 50
+            f = 50,
+            time_scaling = 'poly5'      # Select from: {linear, poly3, poly5}
         )
 
         animate_robot(

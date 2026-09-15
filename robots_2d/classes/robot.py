@@ -143,9 +143,44 @@ class Robot(ABC):
     # ------------------------------------------------------------
     # Trajectory Generation
     # ------------------------------------------------------------
-    def trajectory_p2p_joint_space(self, q_start: np.ndarray, q_end: np.ndarray, T: float = 1.0, f: float = 50):
+    
+    def time_scaling(self, T: float, f: float, method: str):
 
-        s = np.linspace(0.0, 1.0, T * f)
+        match method:
+
+            case 'linear':
+
+                # Linear time scaling
+                return np.linspace(0.0, 1.0, T * f)
+
+            case 'poly3':
+
+                # Third-order polynomial time scaling
+                t = np.linspace(0.0, T, T * f)
+                return 3 / T**2 * t**2 - 2 / T**3 * t**3
+
+            case 'poly5':
+
+                # Fifth-order polynomial time scaling
+                t = np.linspace(0.0, T, T * f)
+                return 10 / T**3 * t**3 - 15 / T**4 * t**4 + 6 / T**5 * t**5
+
+            case m:
+
+                raise ValueError(
+                    f'Time scaling method {m} not supported!'
+                )
+    
+    def trajectory_p2p_joint_space(
+            self,
+            q_start: np.ndarray,
+            q_end: np.ndarray,
+            T: float = 1.0,
+            f: float = 50,
+            time_scaling = 'linear'
+        ):
+
+        s = self.time_scaling(T, f, time_scaling)
 
         qs = np.vstack([
             q_start + si * (q_end - q_start) for si in s
@@ -153,9 +188,16 @@ class Robot(ABC):
 
         return qs
 
-    def trajectory_p2p_cartesisan_space(self, X_start: np.ndarray, X_end: np.ndarray, T: float = 1.0, f: float = 50):
+    def trajectory_p2p_cartesisan_space(
+            self,
+            X_start: np.ndarray,
+            X_end: np.ndarray,
+            T: float = 1.0,
+            f: float = 50,
+            time_scaling = 'linear'
+        ):
 
-        s = np.linspace(0.0, 1.0, T * f)
+        s = self.time_scaling(T, f, time_scaling)
 
         Xs = np.vstack([
             X_start + si * (X_end - X_start) for si in s
