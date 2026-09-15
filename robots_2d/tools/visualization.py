@@ -85,6 +85,18 @@ def animate_robot(robot: Robot, qs: np.ndarray, me: bool = False, interval: int 
 
     ax.add_patch(end_effector)
 
+    # End-effector trail
+    trail = ax.scatter(
+        [],
+        [],
+        s = 1,
+        color = "green",
+        zorder = 0,
+    )
+
+    trail_x = []
+    trail_y = []
+
     # Manipulability ellipse
     if me:
         ellipse = Ellipse(
@@ -152,6 +164,18 @@ def animate_robot(robot: Robot, qs: np.ndarray, me: bool = False, interval: int 
             p_end_effector[1],
         )
 
+        # Add position to trajectory
+        if frame == 0:
+            trail_x.clear()
+            trail_y.clear()
+
+        trail_x.append(p_end_effector[0])
+        trail_y.append(p_end_effector[1])
+
+        trail.set_offsets(
+            np.column_stack((trail_x, trail_y))
+        )
+
         # Manipulability ellipse
         if me:
 
@@ -167,7 +191,7 @@ def animate_robot(robot: Robot, qs: np.ndarray, me: bool = False, interval: int 
         return (
             list(link_lines.values())
             + list(joint_circles.values())
-            + [end_effector]
+            + [end_effector, trail]
             + ([ellipse] if me else [])
         )
 
