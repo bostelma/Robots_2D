@@ -139,3 +139,30 @@ class Robot(ABC):
         )
 
         return center, width, height, angle
+
+    # ------------------------------------------------------------
+    # Trajectory Generation
+    # ------------------------------------------------------------
+    def trajectory_p2p_joint_space(self, q_start: np.ndarray, q_end: np.ndarray, T: float = 1.0, f: float = 50):
+
+        s = np.linspace(0.0, 1.0, T * f)
+
+        qs = np.vstack([
+            q_start + si * (q_end - q_start) for si in s
+        ])
+
+        return qs
+
+    def trajectory_p2p_cartesisan_space(self, X_start: np.ndarray, X_end: np.ndarray, T: float = 1.0, f: float = 50):
+
+        s = np.linspace(0.0, 1.0, T * f)
+
+        Xs = np.vstack([
+            X_start + si * (X_end - X_start) for si in s
+        ])
+
+        qs = []
+        for X in Xs:
+            qs.append(self.inverse_kinematics(*X))
+
+        return np.array(qs)
