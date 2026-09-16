@@ -93,3 +93,56 @@ if __name__ == "__main__":
             me = True,
             interval = 1000 / 50
         )
+
+    # Trajectoreis: Via points in joint space
+    if True:
+
+        N = 10
+
+        via_points = np.random.rand(N, 2) * 2 * np.pi
+        Ts = np.linspace(0.0, via_points.shape[0], via_points.shape[0])
+
+        qs = robot.trajectory_via_points_joint_space(
+            via_points = via_points,
+            Ts = Ts,
+            f = 50
+        )
+
+        animate_robot(
+            robot,
+            qs,
+            me = True,
+            interval = 1000 / 50
+        )
+
+    # Trajectoreis: Via points in cartesian space
+    if True:
+
+        N = 10
+
+        max_arm_length = robot.links[0].length + robot.links[1].length
+        min_arm_length = max(0.0, robot.links[0].length - robot.links[1].length)
+
+        theta = np.random.uniform(0, 2 * np.pi, N)
+        radius = np.sqrt(
+            np.random.uniform(min_arm_length**2, max_arm_length**2, N)
+        )
+
+        x = radius * np.cos(theta)
+        y = radius * np.sin(theta)
+
+        via_points = np.column_stack((x, y))
+        Ts = np.linspace(0.0, via_points.shape[0], via_points.shape[0])
+
+        qs = robot.trajectory_via_points_cartesian_space(
+            via_points = via_points,
+            Ts = Ts,
+            f = 50
+        )
+
+        animate_robot(
+            robot,
+            qs,
+            me = True,
+            interval = 1000 / 50
+        )

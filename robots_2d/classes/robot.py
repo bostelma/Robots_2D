@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
+import sympy as sp
 import numpy as np
 from spatialmath import SE3
 
@@ -208,3 +209,119 @@ class Robot(ABC):
             qs.append(self.inverse_kinematics(*X))
 
         return np.array(qs)
+
+    def trajectory_via_points_joint_space(
+            self,
+            via_points: np.ndarray,
+            Ts: np.ndarray,
+            f: float = 50
+    ):
+
+        # Number of segments
+        N = len(via_points) - 1
+
+        # For each joint
+        solutions = []
+
+        for joint_index in range(via_points.shape[1]):
+
+            a = sp.Matrix(
+                N,
+                4,
+                lambda i, j: sp.Symbol(f'a_{j}_{i}')
+            )
+    
+            equations = []
+
+            # Positional constraints
+            for j in range(N):
+
+                equations.append(
+                    sp.Eq(a[j,0] + a[j,1] * Ts[j] + a[j,2] * Ts[j]**2 + a[j,3] * Ts[j]**3, via_points[j,joint_index])
+                )
+
+                equations.append(
+                    sp.Eq(a[j,0] + a[j,1] * Ts[j+1] + a[j,2] * Ts[j+1]**2 + a[j,3] * Ts[j+1]**3, via_points[j+1,joint_index])
+                )
+
+            # Velocity constraints
+            equations.append(
+                sp.Eq(a[0,1] + 2 * a[0,2] * Ts[0] + 3 * a[0,3] * Ts[0]**2, 0)
+            )
+            equations.append(
+                sp.Eq(a[-1,1] + 2 * a[-1,2] * Ts[-1] + 3 * a[-1,3] * Ts[-1]**2, 0)
+            )
+
+            for j in range(N-1):
+                equations.append(
+                    sp.Eq(a[j,1] + 2 * a[j,2] * Ts[j+1] + 3 * a[j,3] * Ts[j+1]**2, a[j+1,1] + 2 * a[j+1,2] * Ts[j+1] + 3 * a[j+1,3] * Ts[j+1]**2)
+                )
+                
+
+            # Acceleration constraints
+            for j in range(N-1):
+                equations.append(
+                    sp.Eq(2 * a[j,2] + 6 * a[j,3] * Ts[j+1], 2 * a[j+1,2] + 6 * a[j+1,3] * Ts[j+1])
+                )
+
+            # Solve the system
+            solution = sp.solve(equations, a)
+
+            solutions.append(solution)
+
+        # Sample qs
+        ts = np.arange(Ts[0], Ts[-1], 1 / f)
+
+        if ts[-1] < Ts[-1]:
+            ts = np.append(ts, Ts[-1])
+
+        qs = []
+
+        for t in ts:
+
+            # Find the segment containing t
+            j = np.searchsorted(Ts, t, side="right") - 1
+
+            # Prevent going past the final segment
+            j = min(j, len(Ts) - 2)
+
+            q = []
+
+            for i in range(via_points.shape[1]):
+
+                sol = solutions[i]
+
+                qi = (
+                    sol[a[j, 0]]
+                    + sol[a[j, 1]] * t
+                    + sol[a[j, 2]] * t**2
+                    + sol[a[j, 3]] * t**3
+                )
+
+                q.append(float(qi))
+
+            qs.append(q)
+
+        qs = np.array(qs)
+
+        return qs
+
+    def trajectory_via_points_cartesian_space(
+                self,
+                via_points: np.ndarray,
+                Ts: np.ndarray,
+                f: float = 50
+        ):
+
+        via_points_joint_space = [
+            self.inverse_kinematics(*pos)
+                for pos in via_points
+        ]
+
+        via_points_joint_space = np.array(via_points_joint_space)
+
+        return self.trajectory_via_points_joint_space(
+            via_points_joint_space,
+            Ts,
+            f
+        )
