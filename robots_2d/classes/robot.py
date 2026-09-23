@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-import sympy as sp
 import numpy as np
+import sympy as sp
 from spatialmath import SE3
 
 from robots_2d.classes.frame import Frame
@@ -16,6 +16,35 @@ class Robot(ABC):
     frames: list[Frame] = field(default_factory=list)
     joints: list[Joint] = field(default_factory=list)
     links: list[Link] = field(default_factory=list)
+
+    def dof(self) -> int:
+        """Compute the robot's degree of freedom using Grübler's formula.
+
+        Returns
+        -------
+        int
+            The degree of freedom of the robot.
+
+        Notes
+        -----
+        Grübler's formula assumes that the constraints of the mechanical system
+        are independent.
+        """
+
+        # The number of bodies including ground
+        N = 1 + len(self.links)
+
+        # The number of joints
+        J = len(self.joints)
+
+        # 6 for spatial bodies and 3 for planar
+        m = 3
+
+        # DOF for each joint
+        f = [joint.type.dof for joint in self.joints]
+
+        # Compute Grübler's formula
+        return m * (N - 1 - J) + sum(f)
 
     def move_joints(self, *qs):
 

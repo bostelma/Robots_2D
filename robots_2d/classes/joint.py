@@ -7,8 +7,22 @@ from .frame import Frame
 
 
 class JointType(Enum):
+    """Types of joints supported by the robot model.
+
+    Each joint type defines the number of degrees of freedom it contributes
+    to the robot.
+    """
+
     FIXED = "fixed"
     REVOLUTE = "revolute"
+
+    @property
+    def dof(self) -> int:
+        """Return the number of degrees of freedom for the joint type."""
+        return {
+            JointType.FIXED: 0,
+            JointType.REVOLUTE: 1,
+        }[self]
 
 
 @dataclass

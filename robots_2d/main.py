@@ -10,6 +10,12 @@ if __name__ == "__main__":
         l2 = 0.75,
     )
 
+    # Display the degree of freedom of the robot
+    if True:
+        dof = robot.dof()
+        unit = "degree" if dof == 1 else "degrees"
+        print(f"The robot has {dof} {unit} of freedom.")
+
     # Inverse Kinematics using analytical solution
     if True:
         qs = np.array(
