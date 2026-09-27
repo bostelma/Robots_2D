@@ -5,7 +5,27 @@ from .frame import Frame
 
 @dataclass
 class Link:
+    """A rigid link in a kinematic chain.
+    
+    Parameters
+    ----------
+    name : str
+        The name identifying the link.
+    frame : Frame
+        The coordinate frame attached to the link.
+    length : float
+        The length of the link in metres.
+        
+    Attributes
+    ----------
+    name : str
+        The name identifying the link.
+    frame : Frame
+        The coordinate frame attached to the link.
+    length : float
+        The length of the link in metres.
+    """
 
-    name: str       # The name of the link
-    frame: Frame    # The frame attached to this link
-    length: float   # The length of the link
+    name: str
+    frame: Frame
+    length: float

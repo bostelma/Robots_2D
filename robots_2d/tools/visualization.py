@@ -120,7 +120,7 @@ def animate_robot(robot: Robot, qs: np.ndarray, me: bool = False, interval: int 
         q = qs[frame]
 
         # Set robot configuration
-        robot.move_joints(*q)
+        robot.move_joints(q)
         poses = robot.forward_kinematics()
 
         # Links

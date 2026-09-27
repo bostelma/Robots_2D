@@ -11,6 +11,45 @@ from robots_2d.classes.robot import Robot
 
 @dataclass
 class Robot2R(Robot):
+    """Planar two-link revolute robot.
+    
+    The robot consists of two revolute joints and two links arranged in an open
+    serial chain. Joint axes are parallel to the z-axis and expressed in the
+    space frame.
+    
+    Parameters
+    ----------
+    l1 : float, optional
+        Length of the first link. Defaults to 1.0.
+    l2 : float, optional
+        Length of the second link. Defaults to 1.0.
+    q1 : float, optional
+        Initial position of the first revolute joint, in radians.
+        Defaults to 0.0.
+    q2 : float, optional
+        Initial position of the second revolute joint, in radians.
+        Defaults to 0.0.
+    
+    Attributes
+    ----------
+    l1 : float
+        Length of the first link.
+    l2 : float
+        Length of the second link.
+    q1 : float
+        Initial position of the first revolute joint, in radians.
+    q2 : float
+        Initial position of the second revolute joint, in radians.
+        
+    Notes
+    -----
+    The end-effector position is constrained to the x/y plane. For a reachable
+    target position, the inverse kinematics problem generally has two solutions.
+    The solution whose first joint angle requires the smaller change from the
+    current q1 is selected. On the inner and outer workspace boundaries, the two
+    solutions coincide. The reachable workspace is bounded by the distances 
+    abs(l1 - l2) <= sqrt(x**2 + y**2) <= l1 + l2. 
+    """
 
     l1: float = 1.0
     l2: float = 1.0
@@ -63,8 +102,6 @@ class Robot2R(Robot):
             q = self.q1,
         )
 
-
-        # Joint 2
         joint2 = Joint(
             name = "joint2",
             parent = link1_frame,
@@ -74,7 +111,6 @@ class Robot2R(Robot):
             q = self.q2,
         )
 
-        # Joint 3
         joint3 = Joint(
             name = "joint3",
             parent = link2_frame,
@@ -88,92 +124,74 @@ class Robot2R(Robot):
         self.links = [link1, link2, link_end]
         self.joints = [joint1, joint2, joint3]
 
-    def inverse_kinematics(self, x, y):
+    def inverse_kinematics(self, target):
+        """Compute the joint positions required to reach a target position.
+        
+        An analytical solution is computed for the planar two-link manipulator.
+        When two solutions exist, the solution requiring the smaller change in
+        the first joint angle from the current configuration is returned.
+        
+        Parameters
+        ----------
+        target : array_like, shape (2,)
+            Desired end-effector position [x, y] in the space frame.
+            
+        Returns
+        -------
+        numpy.ndarray, shape (2,)
+            The joint positions [q1, q2] in radians.
+            
+        Raises
+        ------
+        ValueError
+            If the target position lies outside the reachable workspace.
+        """
+        
+        x, y = target
 
-        dist = np.sqrt(x*x + y*y)
-
-        # No solution
-        if dist < self.l2 - self.l1 or dist > self.l1 + self.l2:
-
+        dist = np.hypot(x, y)
+        inner = abs(self.l1 - self.l2)
+        outer = self.l1 + self.l2
+        
+        # No solution.
+        if dist < inner or dist > outer:
             raise ValueError(
                 "No inverse kinematics solution for requested tip position!"
             )
-
-        # One solution on the inner workspace boundary
-        elif dist == self.l1 - self.l2:
-
-            q1 = np.atan2(y, x)
-            q2 = np.pi
-
-            return q1, q2
-
-        # One solution on the outer workspace boundary
-        elif dist == self.l1 + self.l2:
-
-            q1 = np.atan2(y, x)
-            q2 = 0
-
-            return q1, q2
-
-        # Two solutions
-        else:
-
-            gamma = np.atan2(y, x)
-            alpha = np.acos((self.l1**2+dist**2-self.l2**2)/(2*self.l1*dist))
-            betha = np.acos((self.l1**2+self.l2**2-dist**2)/(2*self.l1*self.l2))
-
-            sol1 = gamma - alpha, np.pi - betha
-            sol2 = gamma + alpha, betha - np.pi
-
-            # Select the solution with smaller angle change of q1
-            if np.abs(sol1[0] - self.q1) < np.abs(sol2[0] - self.q1):
-                return sol1
-            else:
-                return sol2
         
-    def inverse_kinematics_num(self, x, y):
+        gamma = np.atan2(y, x)
+        
+        # Outer workspace boundary
+        if np.isclose(dist, outer):
+            return np.array([gamma, 0.0])
+        
+        # Inner workspace boundary
+        if np.isclose(dist, inner):
 
-        # Save the current joint configuration
-        q_original = np.array([
-            self.joints[0].q,
-            self.joints[1].q
-        ])
+            if np.isclose(self.l1, self.l2):
+                
+                # The target is the origin. q1 is arbitrary.
+                return np.array([self.q1, np.pi])
+            
+            # The direction of the resulting vector is determined by
+            # whichever link is longer.
+            q1 = gamma if self.l1 > self.l2 else gamma + np.pi
+            return np.array([q1, np.pi])
+        
+        # Two solutions inside the workspace.
+        alpha = np.acos(
+            (self.l1**2 + dist**2 - self.l2**2)
+            / (2 * self.l1 * dist)
+        )
+        beta = np.acos(
+            (self.l1**2 + self.l2**2 - dist**2)
+            / (2 * self.l1 * self.l2)
+        )
 
-        q = q_original.copy()
-
-        # Desired end-effector pose
-        Tsd = SE3.Trans(x, y, 0)
-
-        while True:
-
-            # Current end-effector pose
-            Tsb = self.forward_kinematics()['link_end']
-
-            # Body-frame pose error
-            Vb = (Tsb.inv() @ Tsd).log()
-
-            # Only consider x/y translational error
-            v = Vb[:2, 3]
-
-            # Check convergence
-            if np.linalg.norm(v) <= 0.1:
-                break
-
-            # Body Jacobian
-            Jb = self.body_jacobian()
-
-            # Only x/y translational component
-            Jv = Jb[:2, :]
-
-            # Newton-Raphson update
-            q += np.linalg.pinv(Jv) @ v
-
-            # Apply updated joint configuration
-            self.joints[0].q = q[0]
-            self.joints[1].q = q[1]
-
-        # Restore original robot configuration
-        self.joints[0].q = q_original[0]
-        self.joints[1].q = q_original[1]
-
-        return q
+        sol1 = np.array([gamma - alpha, np.pi - beta])
+        sol2 = np.array([gamma + alpha, beta - np.pi])
+        
+        # Select the solution with the smaller change in q1.
+        if abs(sol1[0] - self.q1) < abs(sol2[0] - self.q1):
+            return sol1
+        return sol2

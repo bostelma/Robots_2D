@@ -20,8 +20,7 @@ if __name__ == "__main__":
     if True:
         qs = np.array(
             robot.inverse_kinematics(
-                1.0,                    # x-coordinate
-                1.0                     # y-coordinate
+                [1.0, 1.0]                  # Target coordinates
             )
         )[np.newaxis, :]
 
@@ -35,8 +34,7 @@ if __name__ == "__main__":
     if True:
         qs = np.array(
             robot.inverse_kinematics_num(
-                1.0,                    # x-coordinate
-                1.0                     # y-coordinate
+                [1.0, 1.0]                  # Target coordinates
             )
         )[np.newaxis, :]
 
