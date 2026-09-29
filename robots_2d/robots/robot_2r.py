@@ -23,12 +23,6 @@ class Robot2R(Robot):
         Length of the first link. Defaults to 1.0.
     l2 : float, optional
         Length of the second link. Defaults to 1.0.
-    q1 : float, optional
-        Initial position of the first revolute joint, in radians.
-        Defaults to 0.0.
-    q2 : float, optional
-        Initial position of the second revolute joint, in radians.
-        Defaults to 0.0.
     
     Attributes
     ----------
@@ -36,10 +30,6 @@ class Robot2R(Robot):
         Length of the first link.
     l2 : float
         Length of the second link.
-    q1 : float
-        Initial position of the first revolute joint, in radians.
-    q2 : float
-        Initial position of the second revolute joint, in radians.
         
     Notes
     -----
@@ -53,8 +43,6 @@ class Robot2R(Robot):
 
     l1: float = 1.0
     l2: float = 1.0
-    q1: float = 0.0
-    q2: float = 0.0
 
     def __post_init__(self):
 
@@ -99,7 +87,7 @@ class Robot2R(Robot):
             child = link1_frame,
             type = JointType.REVOLUTE,
             screw_axis = Twist3([0, 0, 0, 0, 0, 1]),
-            q = self.q1,
+            q = 0.0,
         )
 
         joint2 = Joint(
@@ -108,7 +96,7 @@ class Robot2R(Robot):
             child = link2_frame,
             type = JointType.REVOLUTE,
             screw_axis = Twist3([0, -self.l1, 0, 0, 0, 1]),
-            q = self.q2,
+            q = 0.0,
         )
 
         joint3 = Joint(
@@ -171,7 +159,7 @@ class Robot2R(Robot):
             if np.isclose(self.l1, self.l2):
                 
                 # The target is the origin. q1 is arbitrary.
-                return np.array([self.q1, np.pi])
+                return np.array([self.joints[0].q, np.pi])
             
             # The direction of the resulting vector is determined by
             # whichever link is longer.
@@ -192,6 +180,6 @@ class Robot2R(Robot):
         sol2 = np.array([gamma + alpha, beta - np.pi])
         
         # Select the solution with the smaller change in q1.
-        if abs(sol1[0] - self.q1) < abs(sol2[0] - self.q1):
+        if abs(sol1[0] - self.joints[0].q) < abs(sol2[0] - self.joints[0].q):
             return sol1
         return sol2

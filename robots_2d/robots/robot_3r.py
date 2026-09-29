@@ -25,15 +25,6 @@ class Robot3R(Robot):
         Length of the second link. Defaults to 1.0.
     l3 : float, optional
         Length of the third link. Defaults to 1.0.
-    q1 : float, optional
-        Initial position of the first revolute joint, in radians.
-        Defaults to 0.0.
-    q2 : float, optional
-        Initial position of the second revolute joint, in radians.
-        Defaults to 0.0.
-    q3 : float, optional
-        Initial position of the third revolute joint, in radians.
-        Defaults to 0.0.
 
     Attributes
     ----------
@@ -43,12 +34,6 @@ class Robot3R(Robot):
         Length of the second link.
     l3 : float
         Length of the third link.
-    q1 : float
-        Initial position of the first revolute joint, in radians.
-    q2 : float
-        Initial position of the second revolute joint, in radians.
-    q3 : float
-        Initial position of the third revolute joint, in radians.
 
     Notes
     -----
@@ -76,9 +61,6 @@ class Robot3R(Robot):
     l1: float = 1.0
     l2: float = 1.0
     l3: float = 1.0
-    q1: float = 0.0
-    q2: float = 0.0
-    q3: float = 0.0
 
     def __post_init__(self):
     
@@ -133,7 +115,7 @@ class Robot3R(Robot):
             child = link1_frame,
             type = JointType.REVOLUTE,
             screw_axis = Twist3([0, 0, 0, 0, 0, 1]),
-            q = self.q1,
+            q = 0.0,
         )
 
         joint2 = Joint(
@@ -142,7 +124,7 @@ class Robot3R(Robot):
             child = link2_frame,
             type = JointType.REVOLUTE,
             screw_axis = Twist3([0, -self.l1, 0, 0, 0, 1]),
-            q = self.q2,
+            q = 0.0,
         )
 
         joint3 = Joint(
@@ -151,7 +133,7 @@ class Robot3R(Robot):
             child = link3_frame,
             type = JointType.REVOLUTE,
             screw_axis = Twist3([0, -(self.l1 + self.l2), 0, 0, 0, 1]),
-            q = self.q3,
+            q = 0.0,
         )
 
         joint4 = Joint(
