@@ -192,19 +192,27 @@ class Robot(ABC):
             or if the requested position/orientation is not reachable.
         """
 
-    def inverse_kinematics_num(self, target, tol = 0.01, max_iterations = 100):
+    def inverse_kinematics_num(
+            self,
+            target,
+            theta = None,
+            tol = 0.01,
+            max_iterations = 100
+        ):
         """Compute the joint positions required to reach a target position.
         
         The inverse kinematics problem is solved numerically using a
-        Newton-Raphson iteration based on the body Jacobian. Only the x- and
-        y-components of the end-effector position are considered. The robot's
-        joint configuration is restored to its original state before the method
-        returns.
+        Newton-Raphson iteration based on the body Jacobian. If no pose is
+        specified, only the x- and y-components of the end-effector position are
+        considered. The robot's joint configuration is restored to its original
+        state before the method returns.
         
         Parameters
         ----------
         target : array_like, shape (2,)
             Desired end-effector position [x, y] in the space frame.
+        theta : float, optional
+            The desired pose of the end-effector
         tol : float, optional
             Convergence tolerance for the Euclidean norm of the x/y position
             error. Defaults to 0.1.
@@ -224,11 +232,9 @@ class Robot(ABC):
             
         Notes
         -----
-        Only the translational x/y components of the body Jacobian are used for
-        the Newton-Raphson update. Fixed joints are not included in the returned
-        joint configuration. The method temporarily modifies the robot's joint
-        configuration during the iteration but restores the original
-        configuration before returning.
+        Fixed joints are not included in the returned joint configuration. The
+        method temporarily modifies the robot's joint configuration during the
+        iteration but restores the original configuration before returning.
         """
         
         # Save the current joint configuration
@@ -241,6 +247,8 @@ class Robot(ABC):
 
         # Desired end-effector pose
         Tsd = SE3.Trans(target[0], target[1], 0)
+        if theta is not None:
+            Tsd = Tsd * SE3.Rz(theta) 
 
         # Limit the number of iterations
         for _ in range(max_iterations):
@@ -249,23 +257,28 @@ class Robot(ABC):
             Tsb = self.forward_kinematics()['link_end']
 
             # Body-frame pose error
-            Vb = (Tsb.inv() @ Tsd).log()
+            Vb = (Tsb.inv() @ Tsd).log(twist = True)
 
             # Only consider x/y translational error
-            v = Vb[:2, 3]
+            wb = Vb[3:]
+            vb = Vb[:2]
 
             # Check convergence
-            if np.linalg.norm(v) <= tol:
-                break
+            if theta is None:
+                if np.linalg.norm(vb) <= tol:
+                    break
+            else:
+                if np.linalg.norm(vb) <= tol and np.linalg.norm(wb) <= tol:
+                    break
 
             # Body Jacobian
             Jb = self.body_jacobian()
 
-            # Only x/y translational component
-            Jv = Jb[:2, :]
-
             # Newton-Raphson update
-            q += np.linalg.pinv(Jv) @ v
+            if theta is None:
+                q += np.linalg.pinv(Jb[:2, :]) @ vb
+            else:
+                q += np.linalg.pinv(Jb) @ Vb
 
             # Apply updated joint configuration
             self.move_joints(q)

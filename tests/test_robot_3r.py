@@ -182,5 +182,97 @@ class TestRobot3R(unittest.TestCase):
             atol = 0.1,
         )
 
+    def test_inv_num_zero_configuration(self):
+
+        target_p = np.array([self.l1 + self.l2 + self.l3, 0.0])
+        target_theta = 0.0
+
+        q = self.robot.inverse_kinematics_num(target_p, target_theta)
+        self.robot.move_joints(q)
+        T = self.robot.forward_kinematics()["link_end"]
+        p = T.t[:2]
+        theta = T.rpy()[2]
+
+        np.testing.assert_allclose(
+            p,
+            target_p,
+            atol = 0.01,
+        )
+
+        np.testing.assert_allclose(
+            theta,
+            target_theta,
+            atol = 0.1,
+        )
+
+    def test_inv_num_first_joint_90_degrees(self):
+        
+        target_p = np.array([0.0, self.l1 + self.l2 + self.l3])
+        target_theta = np.pi / 2
+
+        q = self.robot.inverse_kinematics_num(target_p, target_theta)
+        self.robot.move_joints(q)
+        T = self.robot.forward_kinematics()["link_end"]
+        p = T.t[:2]
+        theta = T.rpy()[2]
+
+        np.testing.assert_allclose(
+            p,
+            target_p,
+            atol = 0.01,
+        )
+
+        np.testing.assert_allclose(
+            theta,
+            target_theta,
+            atol = 0.1,
+        )
+
+    def test_inv_num_second_joint_90_degrees(self):
+            
+        target_p = np.array([self.l1, self.l2 + self.l3])
+        target_theta = np.pi / 2
+
+        q = self.robot.inverse_kinematics_num(target_p, target_theta)
+        self.robot.move_joints(q)
+        T = self.robot.forward_kinematics()["link_end"]
+        p = T.t[:2]
+        theta = T.rpy()[2]
+
+        np.testing.assert_allclose(
+            p,
+            target_p,
+            atol = 0.01,
+        )
+
+        np.testing.assert_allclose(
+            theta,
+            target_theta,
+            atol = 0.1,
+        )
+
+    def test_inv_num_third_joint_90_degrees(self):
+        
+        target_p = np.array([self.l1 + self.l2, self.l3])
+        target_theta = np.pi / 2
+
+        q = self.robot.inverse_kinematics_num(target_p, target_theta)
+        self.robot.move_joints(q)
+        T = self.robot.forward_kinematics()["link_end"]
+        p = T.t[:2]
+        theta = T.rpy()[2]
+
+        np.testing.assert_allclose(
+            p,
+            target_p,
+            atol = 0.01,
+        )
+
+        np.testing.assert_allclose(
+            theta,
+            target_theta,
+            atol = 0.1,
+        )
+
 if __name__ == "__main__":
     unittest.main()
