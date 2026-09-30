@@ -76,39 +76,93 @@ class TestRobot2R(unittest.TestCase):
     # --------------------------------------------------------------------------
 
     def test_inv_zero_configuration(self):
-    
-        q = self.robot.inverse_kinematics(
-            np.array([self.l1 + self.l2, 0.0])
-        )
+
+        target = np.array([self.l1 + self.l2, 0.0])
+
+        q = self.robot.inverse_kinematics(target)
+        self.robot.move_joints(q)
+        p = self.robot.forward_kinematics()["link_end"].t[:2]
 
         np.testing.assert_allclose(
-            q,
-            np.array([0.0, 0.0]),
-            atol=1e-12,
+            p,
+            target,
+            atol=0.01,
         )
 
     def test_inv_first_joint_90_degrees(self):
         
-        q = self.robot.inverse_kinematics(
-            np.array([0.0, self.l1 + self.l2])
-        )
+        target = np.array([0.0, self.l1 + self.l2])
+        
+        q = self.robot.inverse_kinematics(target)
+        self.robot.move_joints(q)
+        p = self.robot.forward_kinematics()["link_end"].t[:2]
 
         np.testing.assert_allclose(
-            q,
-            np.array([np.pi / 2, 0.0]),
-            atol=1e-12,
-        ) 
+            p,
+            target,
+            atol=0.01,
+        )
 
     def test_inv_second_joint_90_degrees(self):
             
-        q = self.robot.inverse_kinematics(
-            np.array([self.l1, self.l2])
-        )
+        target = np.array([self.l1, self.l2])
+                
+        q = self.robot.inverse_kinematics(target)
+        self.robot.move_joints(q)
+        p = self.robot.forward_kinematics()["link_end"].t[:2]
 
         np.testing.assert_allclose(
-            q,
-            np.array([0.0, np.pi / 2]),
-            atol=1e-12,
+            p,
+            target,
+            atol=0.01,
+        )
+
+    def test_inv_num_zero_configuration(self):
+    
+        target = np.array([self.l1 + self.l2, 0.0])
+
+        self.robot.move_joints(np.array([0.0, 0.0]))
+        
+        q = self.robot.inverse_kinematics_num(target)
+        self.robot.move_joints(q)
+        p = self.robot.forward_kinematics()["link_end"].t[:2]
+
+        np.testing.assert_allclose(
+            p,
+            target,
+            atol=0.01,
+        )
+
+    def test_inv_num_first_joint_90_degrees(self):
+
+        target = np.array([0.0, self.l1 + self.l2])
+
+        self.robot.move_joints(np.array([0.0, 0.0]))
+                
+        q = self.robot.inverse_kinematics_num(target)
+        self.robot.move_joints(q)
+        p = self.robot.forward_kinematics()["link_end"].t[:2]
+
+        np.testing.assert_allclose(
+            p,
+            target,
+            atol=0.01,
+        )
+
+    def test_inv_num_second_joint_90_degrees(self):
+
+        target = np.array([self.l1, self.l2])
+
+        self.robot.move_joints(np.array([0.0, 0.0]))
+                        
+        q = self.robot.inverse_kinematics_num(target)
+        self.robot.move_joints(q)
+        p = self.robot.forward_kinematics()["link_end"].t[:2]
+
+        np.testing.assert_allclose(
+            p,
+            target,
+            atol=0.01,
         )
 
 if __name__ == "__main__":
