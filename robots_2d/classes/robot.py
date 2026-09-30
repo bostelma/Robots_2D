@@ -165,18 +165,31 @@ class Robot(ABC):
     # --------------------------------------------------------------------------
 
     @abstractmethod
-    def inverse_kinematics(self, target):
-        """Compute the joint positions required to reach a target position.
-        
+    def inverse_kinematics(self, target, theta = None):
+        """Compute the joint values required to reach a target position or pose.
+
         Parameters
         ----------
         target : array_like, shape (2,)
-    
+            Target Cartesian position [x, y] of the end effector.
+        theta : float, optional
+            Target end-effector orientation in radians. If provided, the inverse
+            kinematics problem includes the orientation constraint in addition
+            to the position constraint. A pose target is only supported when the
+            robot has sufficient degrees of freedom to satisfy it.
+
         Returns
         -------
         numpy.ndarray, shape (N,)
             Joint positions that bring the end effector to the target position,
-            where N is the number of movable joints.    
+            and, if theta is provided, to the specified orientation.
+            N is the number of movable joints.
+
+        Raises
+        ------
+        ValueError
+            If theta is provided but the robot does not support pose targets,
+            or if the requested position/orientation is not reachable.
         """
 
     def inverse_kinematics_num(self, target, tol = 0.1, max_iterations = 100):

@@ -71,5 +71,45 @@ class TestRobot2R(unittest.TestCase):
             atol=1e-12,
         )
 
+    # --------------------------------------------------------------------------
+    # Inverse kinematics
+    # --------------------------------------------------------------------------
+
+    def test_inv_zero_configuration(self):
+    
+        q = self.robot.inverse_kinematics(
+            np.array([self.l1 + self.l2, 0.0])
+        )
+
+        np.testing.assert_allclose(
+            q,
+            np.array([0.0, 0.0]),
+            atol=1e-12,
+        )
+
+    def test_inv_first_joint_90_degrees(self):
+        
+        q = self.robot.inverse_kinematics(
+            np.array([0.0, self.l1 + self.l2])
+        )
+
+        np.testing.assert_allclose(
+            q,
+            np.array([np.pi / 2, 0.0]),
+            atol=1e-12,
+        ) 
+
+    def test_inv_second_joint_90_degrees(self):
+            
+        q = self.robot.inverse_kinematics(
+            np.array([self.l1, self.l2])
+        )
+
+        np.testing.assert_allclose(
+            q,
+            np.array([0.0, np.pi / 2]),
+            atol=1e-12,
+        )
+
 if __name__ == "__main__":
     unittest.main()

@@ -155,5 +155,110 @@ class Robot3R(Robot):
             joint1, joint2, joint3, joint4
         ]
 
-    def inverse_kinematics(self, target):
-        return np.array([0.0, 0.0, 0.0])
+    def inverse_kinematics(self, target, theta = None):
+        """Compute the joint positions required to reach a target position.
+        
+        An analytical solution is computed for the planar three-link manipulator.
+        When two solutions exist, the solution requiring the smaller overall
+        change in the joint angles from the current configuration is returned.
+        
+        Parameters
+        ----------
+        target : array_like, shape (2,)
+            Desired end-effector position [x, y] in the space frame.
+        theta : None
+            Target end-effector orientation. Orientation targets must be
+            specified for this robot to get an analytical solution.
+
+        Returns
+        -------
+        numpy.ndarray, shape (3,)
+            The joint positions [q1, q2, q3] in radians.
+            
+        Raises
+        ------
+        ValueError
+            If theta is unspecified, or if the target position lies outside the
+            reachable workspace.
+        """
+
+        if theta is None:
+            raise ValueError(
+                "Orientation target must be specified for this robot!"
+            )
+
+        x = target[0] - self.l3 * np.cos(theta)
+        y = target[1] - self.l3 * np.sin(theta)
+
+        dist = np.hypot(x, y)
+        inner = abs(self.l1 - self.l2)
+        outer = self.l1 + self.l2
+        
+        # No solution.
+        if dist < inner or dist > outer:
+            raise ValueError(
+                "No inverse kinematics solution for requested tip position!"
+            )
+        
+        gamma = np.atan2(y, x)
+        
+        # Outer workspace boundary of first two links
+        if np.isclose(dist, outer):
+            return np.array([
+                gamma,
+                0.0,
+                theta - gamma
+            ])
+        
+        # Inner workspace boundary of first two links
+        if np.isclose(dist, inner):
+
+            if np.isclose(self.l1, self.l2):
+                
+                # The end of link2 is the origin. q1 is arbitrary.
+                return np.array([
+                    self.joints[0].q,
+                    np.pi,
+                    theta - self.joints[0].q - np.pi
+                ])
+            
+            # The direction of the resulting vector is determined by
+            # whichever link is longer.
+            q1 = gamma if self.l1 > self.l2 else gamma + np.pi
+            return np.array([
+                q1,
+                np.pi,
+                theta - q1 - np.pi
+            ])
+        
+        # Two solutions inside the workspace of the first two links
+        alpha = np.acos(
+            (self.l1**2 + dist**2 - self.l2**2)
+            / (2 * self.l1 * dist)
+        )
+        beta = np.acos(
+            (self.l1**2 + self.l2**2 - dist**2)
+            / (2 * self.l1 * self.l2)
+        )
+
+        sol1 = np.array([
+            gamma - alpha,
+            np.pi - beta,
+            theta - gamma + alpha - np.pi + beta
+        ])
+        sol2 = np.array([
+            gamma + alpha,
+            beta - np.pi,
+            theta - gamma - alpha - beta + np.pi
+        ])
+        
+        # Select the solution with the smaller overall angle difference
+        def angle_diff(a, b):
+            return np.arctan2(np.sin(a - b), np.cos(a - b))
+
+        qs = np.array([joint.q for joint in self.joints[:3]]) 
+
+        d1 = np.linalg.norm(angle_diff(sol1, qs))
+        d2 = np.linalg.norm(angle_diff(sol2, qs))
+
+        return sol1 if d1 < d2 else sol2

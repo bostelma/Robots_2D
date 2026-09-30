@@ -112,18 +112,21 @@ class Robot2R(Robot):
         self.links = [link1, link2, link_end]
         self.joints = [joint1, joint2, joint3]
 
-    def inverse_kinematics(self, target):
+    def inverse_kinematics(self, target, theta = None):
         """Compute the joint positions required to reach a target position.
         
         An analytical solution is computed for the planar two-link manipulator.
-        When two solutions exist, the solution requiring the smaller change in
-        the first joint angle from the current configuration is returned.
+        When two solutions exist, the solution requiring the smaller overall
+        change in the joint angles from the current configuration is returned.
         
         Parameters
         ----------
         target : array_like, shape (2,)
             Desired end-effector position [x, y] in the space frame.
-            
+        theta : None
+            Target end-effector orientation. Orientation targets are not
+            supported for this robot and must be left unspecified.
+
         Returns
         -------
         numpy.ndarray, shape (2,)
@@ -132,9 +135,15 @@ class Robot2R(Robot):
         Raises
         ------
         ValueError
-            If the target position lies outside the reachable workspace.
+            If theta is specified, or if the target position lies outside the
+            reachable workspace.
         """
-        
+
+        if theta is not None:
+            raise ValueError(
+                "Orientation targets are not supported for this robot!"
+            )
+            
         x, y = target
 
         dist = np.hypot(x, y)
@@ -179,7 +188,13 @@ class Robot2R(Robot):
         sol1 = np.array([gamma - alpha, np.pi - beta])
         sol2 = np.array([gamma + alpha, beta - np.pi])
         
-        # Select the solution with the smaller change in q1.
-        if abs(sol1[0] - self.joints[0].q) < abs(sol2[0] - self.joints[0].q):
-            return sol1
-        return sol2
+        # Select the solution with the smaller overall angle difference
+        def angle_diff(a, b):
+            return np.arctan2(np.sin(a - b), np.cos(a - b))
+
+        qs = np.array([joint.q for joint in self.joints[:2]])        
+
+        d1 = np.linalg.norm(angle_diff(sol1, qs))
+        d2 = np.linalg.norm(angle_diff(sol2, qs))
+
+        return sol1 if d1 < d2 else sol2
