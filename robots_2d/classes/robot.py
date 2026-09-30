@@ -192,7 +192,7 @@ class Robot(ABC):
             or if the requested position/orientation is not reachable.
         """
 
-    def inverse_kinematics_num(self, target, tol = 0.1, max_iterations = 100):
+    def inverse_kinematics_num(self, target, tol = 0.01, max_iterations = 100):
         """Compute the joint positions required to reach a target position.
         
         The inverse kinematics problem is solved numerically using a
@@ -278,7 +278,13 @@ class Robot(ABC):
         # Restore original robot configuration
         self.move_joints(q_original)
 
-        return q
+        def wrap_to_nearest(angle, reference):
+            return reference + np.arctan2(
+                np.sin(angle - reference),
+                np.cos(angle - reference)
+            )
+
+        return wrap_to_nearest(q, q_original)
 
     # --------------------------------------------------------------------------
     # Jacobians
