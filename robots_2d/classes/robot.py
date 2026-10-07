@@ -435,7 +435,7 @@ class Robot(ABC):
         major_axis = eigenvectors[:, 0]
 
         angle = np.degrees(
-            np.arctan2(major_axis[1], major_axis[0])
+            np.arctan2(major_axis[0], major_axis[1])
         )
 
         return center, width, height, angle
