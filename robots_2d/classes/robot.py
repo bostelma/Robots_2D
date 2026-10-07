@@ -424,17 +424,12 @@ class Robot(ABC):
         # Manipulability matrix
         A = Jxy @ Jxy.T
 
-        # Eigen-decomposition
+        # Eigen-decomposition (Returns in ascending order)
         eigenvalues, eigenvectors = np.linalg.eigh(A)
 
-        # Sort largest -> smallest
-        order = np.argsort(eigenvalues)[::-1]
-        eigenvalues = eigenvalues[order]
-        eigenvectors = eigenvectors[:, order]
-
         # Full axis lengths for matplotlib
-        width = 2 * np.sqrt(eigenvalues[0])
-        height = 2 * np.sqrt(eigenvalues[1])
+        width = 2 * np.sqrt(eigenvalues[1])
+        height = 2 * np.sqrt(eigenvalues[0])
 
         # Orientation of major axis
         major_axis = eigenvectors[:, 0]
@@ -444,6 +439,110 @@ class Robot(ABC):
         )
 
         return center, width, height, angle
+
+    def manipulability_measure_1(self) -> float:
+        """Compute the planar translational manipulability axis ratio.
+
+        The measure is defined as the ratio between the lengths of the longest
+        and shortest principal axes of the planar translational manipulability
+        ellipse. A value of 1 indicates isotropic translational manipulability,
+        while larger values indicate increasing directional anisotropy.
+
+        Returns
+        -------
+        float
+            Ratio of the longest to shortest principal axes of the planar
+            translational manipulability ellipse. Returns np.inf if the smallest
+            eigenvalue is non-positive, indicating a singular translational
+            Jacobian.
+        """
+
+        # Body Jacobian
+        Jb = self.body_jacobian()
+
+        # Translational body Jacobian
+        Jb_xy = Jb[:2, :]
+
+        # Manipulability matrix
+        A = Jb_xy @ Jb_xy.T
+
+        # Eigenvalues are returned in ascending order
+        eigenvalues = np.linalg.eigvalsh(A)
+
+        # Ratio of longest and shortest axes
+        if eigenvalues[0] <= 0:
+            return np.inf
+
+        return np.sqrt(eigenvalues[1] / eigenvalues[0])
+
+    def manipulability_measure_2(self) -> float:
+        """Compute the squared condition number of the planar translational
+        Jacobian.
+
+        The measure is defined as the ratio between the largest and smallest
+        eigenvalues of the planar translational manipulability matrix J @ J.T.
+        It is equal to the square of the Jacobian's 2-norm condition number.
+
+        A value of 1 indicates isotropic translational manipulability, while
+        larger values indicate increasing directional anisotropy.
+
+        Returns
+        -------
+        float:
+            Squared 2-norm condition number of the planar translational
+            Jacobian. Returns np.inf if the smallest eigenvalue is
+            non-positive, indicating a singular translational Jacobian.
+        """
+
+        # Body Jacobian
+        Jb = self.body_jacobian()
+
+        # Translational body Jacobian
+        Jb_xy = Jb[:2, :]
+
+        # Manipulability matrix
+        A = Jb_xy @ Jb_xy.T
+
+        # Eigenvalues are returned in ascending order
+        eigenvalues = np.linalg.eigvalsh(A)
+
+        # Squared condition number
+        if eigenvalues[0] <= 0:
+            return np.inf
+
+        return eigenvalues[1] / eigenvalues[0]
+
+    def manipulability_measure_3(self) -> float:
+        """Compute a measure proportional to the area of the manipulability
+        ellipse.
+
+        The measure is computed as the geometric mean of the eigenvalues of
+        the planar translational manipulability matrix `J @ J.T`. Since the
+        eigenvalues correspond to the squared lengths of the principal axes,
+        the resulting measure is proportional to the area of the planar
+        translational manipulability ellipse.
+
+        Returns
+        -------
+        float:
+            Square root of the product of the smallest and largest eigenvalues
+            of the planar translational manipulability matrix.
+        """
+
+        # Body Jacobian
+        Jb = self.body_jacobian()
+
+        # Translational body Jacobian
+        Jb_xy = Jb[:2, :]
+
+        # Manipulability matrix
+        A = Jb_xy @ Jb_xy.T
+
+        # Eigenvalues are returned in ascending order
+        eigenvalues = np.linalg.eigvalsh(A)
+
+        # Measure proportional to area of ellipse
+        return np.sqrt(eigenvalues[1] * eigenvalues[0])
 
     # --------------------------------------------------------------------------
     # Trajectory generation

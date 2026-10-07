@@ -274,5 +274,45 @@ class TestRobot3R(unittest.TestCase):
             atol = 0.1,
         )
 
+    # --------------------------------------------------------------------------
+    # Manipulability
+    # --------------------------------------------------------------------------
+
+    def test_maniuplability_measure_1_sing(self):
+    
+            self.robot.move_joints(np.array([0.0, 0.0, 0.0]))
+                            
+            mu = self.robot.manipulability_measure_1()
+    
+            np.testing.assert_allclose(
+                mu,
+                np.inf,
+                atol=0.01,
+            )
+
+    def test_maniuplability_measure_2_sing(self):
+        
+        self.robot.move_joints(np.array([0.0, 0.0, 0.0]))
+                        
+        mu = self.robot.manipulability_measure_2()
+
+        np.testing.assert_allclose(
+            mu,
+            np.inf,
+            atol=0.01,
+        )
+
+    def test_maniuplability_measure_3_sing(self):
+        
+        self.robot.move_joints(np.array([0.0, 0.0, 0.0]))
+                        
+        mu = self.robot.manipulability_measure_3()
+
+        np.testing.assert_allclose(
+            mu,
+            0.0,
+            atol=0.01,
+        )
+
 if __name__ == "__main__":
     unittest.main()
