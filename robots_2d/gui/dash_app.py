@@ -35,7 +35,10 @@ def create_robot(robot_type: str) -> Robot:
 # Plotly figure
 # ---------------------------------------------------------------------------
 
-def create_robot_figure(robot: Robot) -> go.Figure:
+def create_robot_figure(
+        robot: Robot,
+        show_manipulability: bool = False
+    ) -> go.Figure:
 
     poses = robot.forward_kinematics()
 
@@ -113,6 +116,45 @@ def create_robot_figure(robot: Robot) -> go.Figure:
             hoverinfo = "skip",
         )
     )
+
+    if show_manipulability:
+
+        center, width, height, angle = robot.manipulability_ellipse()
+
+        theta = np.linspace(0.0, 2.0 * np.pi, 100)
+
+        # Full axis lengths -> semi-axis lengths
+        a = float(width) / 2.0
+        b = float(height) / 2.0
+
+        # Angle is returned in degrees
+        angle = np.deg2rad(angle)
+
+        # Ellipse aligned with x/y axes
+        x = a * np.cos(theta)
+        y = b * np.sin(theta)
+
+        # Rotate ellipse counterclockwise from +x
+        x_rot = x * np.cos(angle) - y * np.sin(angle)
+        y_rot = x * np.sin(angle) + y * np.cos(angle)
+
+        # Translate to end-effector position
+        x_rot += float(center[0])
+        y_rot += float(center[1])
+
+        fig.add_trace(
+            go.Scatter(
+                x=x_rot,
+                y=y_rot,
+                mode="lines",
+                line={
+                    "color": "blue",
+                    "width": 2,
+                },
+                showlegend=False,
+                hoverinfo="skip",
+            )
+        )
 
     # Workspace / axes
     total_length = sum(link.length for link in robot.links)
@@ -255,6 +297,62 @@ app.layout = html.Div(
             },
         ),
 
+        html.Div(
+            [
+                html.H4("Manipulability"),
+
+                dcc.Checklist(
+                    id="show-manipulability",
+                    options=[
+                        {
+                            "label": "Show manipulability ellipse",
+                            "value": "show",
+                        }
+                    ],
+                    value=[],
+                ),
+
+                html.Br(),
+
+                html.Label("Manipulability Measure 1"),
+                dcc.Input(
+                    id="manipulability-measure-1",
+                    type="number",
+                    value=0.0,
+                    readOnly=True,
+                ),
+
+                html.Br(),
+                html.Br(),
+
+                html.Label("Manipulability Measure 2"),
+                dcc.Input(
+                    id="manipulability-measure-2",
+                    type="number",
+                    value=0.0,
+                    readOnly=True,
+                ),
+
+                html.Br(),
+                html.Br(),
+
+                html.Label("Manipulability Measure 3"),
+                dcc.Input(
+                    id="manipulability-measure-3",
+                    type="number",
+                    value=0.0,
+                    readOnly=True,
+                ),
+            ],
+            style={
+                "border": "1px solid lightgrey",
+                "padding": "15px",
+                "marginTop": "20px",
+                "marginBottom": "20px",
+                "width": "300px",
+            },
+        ),
+
         dcc.Graph(
             id = "robot-graph",
         ),
@@ -269,12 +367,22 @@ app.layout = html.Div(
 @app.callback(
     Output("robot-graph", "figure"),
     Output("joint-3-container", "style"),
+    Output("manipulability-measure-1", "value"),
+    Output("manipulability-measure-2", "value"),
+    Output("manipulability-measure-3", "value"),
     Input("robot-type", "value"),
     Input("joint-1", "value"),
     Input("joint-2", "value"),
     Input("joint-3", "value"),
+    Input("show-manipulability", "value"),
 )
-def update_robot(robot_type, q1, q2, q3):
+def update_robot(
+    robot_type,
+    q1,
+    q2,
+    q3,
+    show_manipulability,
+):
 
     robot = create_robot(robot_type)
 
@@ -299,9 +407,18 @@ def update_robot(robot_type, q1, q2, q3):
 
     robot.move_joints(q)
 
-    figure = create_robot_figure(robot)
+    figure = create_robot_figure(
+        robot,
+        show_manipulability = show_manipulability
+    )
 
-    return figure, joint_3_style
+    return (
+        figure,
+        joint_3_style,
+        robot.manipulability_measure_1(),
+        robot.manipulability_measure_2(),
+        robot.manipulability_measure_3(),
+    )
 
 
 if __name__ == "__main__":
