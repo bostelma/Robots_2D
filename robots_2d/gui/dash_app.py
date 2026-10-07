@@ -52,8 +52,13 @@ def create_robot_figure(
 
         T = poses[link.name]
 
-        p_start = T * np.array([0.0, 0.0, 0.0])
-        p_end = T * np.array([link.length, 0.0, 0.0])
+        p_start = np.asarray(
+            T * np.array([0.0, 0.0, 0.0])
+        ).ravel()
+
+        p_end = np.asarray(
+            T * np.array([link.length, 0.0, 0.0])
+        ).ravel()
 
         fig.add_trace(
             go.Scatter(
@@ -80,7 +85,9 @@ def create_robot_figure(
 
         T = poses[joint.child.name]
 
-        p = T * np.array([0.0, 0.0, 0.0])
+        p = np.asarray(
+            T * np.array([0.0, 0.0, 0.0])
+        ).ravel()
 
         joint_x.append(float(p[0]))
         joint_y.append(float(p[1]))
@@ -101,7 +108,9 @@ def create_robot_figure(
 
     # End effector
     T = poses["link_end"]
-    p = T * np.array([0.0, 0.0, 0.0])
+    p = np.asarray(
+        T * np.array([0.0, 0.0, 0.0])
+    ).ravel()
 
     fig.add_trace(
         go.Scatter(
