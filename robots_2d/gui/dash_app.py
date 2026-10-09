@@ -6,32 +6,6 @@ from robots_2d.classes.joint import JointType
 from robots_2d.classes.robot import Robot
 from robots_2d.gui.tabs.manipulability_tab import ManipulabilityTab
 from robots_2d.gui.tabs.robot_tab import RobotTab
-from robots_2d.robots.robot_2r import Robot2R
-from robots_2d.robots.robot_3r import Robot3R
-
-# ---------------------------------------------------------------------------
-# Robot construction
-# ---------------------------------------------------------------------------
-
-def create_robot(robot_type: str) -> Robot:
-
-    if robot_type == "Robot2R":
-        return Robot2R(
-            l1 = 1.0,
-            l2 = 1.0
-        )
-
-    if robot_type == "Robot3R":
-        return Robot3R(
-        l1 = 1.0,
-        l2 = 1.0,
-        l3 = 1.0
-    )
-
-    raise ValueError(
-        f"Unknown robot type: {robot_type}"
-    )
-
 
 # ---------------------------------------------------------------------------
 # Plotly figure
@@ -302,7 +276,7 @@ def update_robot(
     show_manipulability,
 ):
 
-    robot = create_robot(robot_type)
+    robot = RobotTab.create_robot(robot_type)
 
     if robot_type == "Robot2R":
 
@@ -315,7 +289,7 @@ def update_robot(
 
         q = np.array([q1, q2, q3])
         joint_3_style = {
-            "display": "block"
+            "display": "flex"
         }
 
     else:
