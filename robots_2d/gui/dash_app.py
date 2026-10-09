@@ -4,6 +4,8 @@ from dash import Dash, Input, Output, dcc, html
 
 from robots_2d.classes.joint import JointType
 from robots_2d.classes.robot import Robot
+from robots_2d.gui.tabs.manipulability_tab import ManipulabilityTab
+from robots_2d.gui.tabs.robot_tab import RobotTab
 from robots_2d.robots.robot_2r import Robot2R
 from robots_2d.robots.robot_3r import Robot3R
 
@@ -230,142 +232,49 @@ app = Dash(__name__)
 
 app.layout = html.Div(
     [
-        html.H2("2D Robot"),
 
-        html.Label("Robot"),
-        dcc.Dropdown(
-            id = "robot-type",
-            options = [
-                {"label": "Robot2R", "value": "Robot2R"},
-                {"label": "Robot3R", "value": "Robot3R"},
-            ],
-            value = "Robot2R",
-            clearable = False,
-        ),
-
-        html.Br(),
-
-        html.Label("Joint 1"),
-        dcc.Slider(
-            id = "joint-1",
-            min = -np.pi,
-            max = np.pi,
-            step = 0.01,
-            value = 0.0,
-            marks = {
-                -np.pi: "-π",
-                -np.pi / 2: "-π/2",
-                0: "0",
-                np.pi / 2: "π/2",
-                np.pi: "π",
-            },
-        ),
-
-        html.Br(),
-
-        html.Label("Joint 2"),
-        dcc.Slider(
-            id = "joint-2",
-            min = -np.pi,
-            max = np.pi,
-            step = 0.01,
-            value = 0.0,
-            marks = {
-                -np.pi: "-π",
-                -np.pi / 2: "-π/2",
-                0: "0",
-                np.pi / 2: "π/2",
-                np.pi: "π",
-            },
-        ),
-
-        html.Br(),
-
-        html.Div(
-            id = "joint-3-container",
-            children = [
-                html.Label("Joint 3"),
-                dcc.Slider(
-                    id = "joint-3",
-                    min = -np.pi,
-                    max = np.pi,
-                    step = 0.01,
-                    value = 0.0,
-                    marks = {
-                        -np.pi: "-π",
-                        -np.pi / 2: "-π/2",
-                        0: "0",
-                        np.pi / 2: "π/2",
-                        np.pi: "π",
-                    },
-                ),
-                html.Br(),
-            ],
-            style = {
-                "display": "none"
-            },
-        ),
-
+        # Left Side: Main figure
         html.Div(
             [
-                html.H4("Manipulability"),
+                dcc.Graph(
+                    id = "robot-graph",
+                )
+            ],
+            style={
+                "width": "50%",
+                "height": "100vh",
+                "padding": "10px",
+                "boxSizing": "border-box",
+            },
+        ),
 
-                dcc.Checklist(
-                    id="show-manipulability",
-                    options=[
-                        {
-                            "label": "Show manipulability ellipse",
-                            "value": "show",
-                        }
+        # Right Side: Tabs and graphs
+        html.Div(
+            [
+                # Top-right tabs
+                dcc.Tabs(
+                    id="tabs",
+                    children=[
+                        RobotTab(),
+                        ManipulabilityTab(),
                     ],
-                    value=[],
-                ),
-
-                html.Br(),
-
-                html.Label("Manipulability Measure 1"),
-                dcc.Input(
-                    id="manipulability-measure-1",
-                    type="number",
-                    value=0.0,
-                    readOnly=True,
-                ),
-
-                html.Br(),
-                html.Br(),
-
-                html.Label("Manipulability Measure 2"),
-                dcc.Input(
-                    id="manipulability-measure-2",
-                    type="number",
-                    value=0.0,
-                    readOnly=True,
-                ),
-
-                html.Br(),
-                html.Br(),
-
-                html.Label("Manipulability Measure 3"),
-                dcc.Input(
-                    id="manipulability-measure-3",
-                    type="number",
-                    value=0.0,
-                    readOnly=True,
                 ),
             ],
             style={
-                "border": "1px solid lightgrey",
-                "padding": "15px",
-                "marginTop": "20px",
-                "marginBottom": "20px",
-                "width": "300px",
+                "width": "50%",
+                "height": "100vh",
+                "padding": "10px",
+                "boxSizing": "border-box",
             },
         ),
-
-        dcc.Graph(
-            id = "robot-graph",
-        ),
     ],
+    style={
+        "display": "flex",
+        "flexDirection": "row",
+        "width": "100%",
+        "height": "100vh",
+        "overflow": "hidden",
+    },
 )
 
 
