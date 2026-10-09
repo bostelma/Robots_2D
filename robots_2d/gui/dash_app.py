@@ -136,8 +136,8 @@ def create_robot_figure(
         a = float(width) / 2.0
         b = float(height) / 2.0
 
-        # Angle is returned in degrees
-        angle = np.deg2rad(angle)
+        # Angle is returned in degrees and cloclwise
+        angle = -np.deg2rad(angle)
 
         # Ellipse aligned with x/y axes
         x = a * np.cos(theta)
