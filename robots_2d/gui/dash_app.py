@@ -304,7 +304,8 @@ def update_robot(
 
         q = np.array([q1, q2, q3])
         link_length_3_style = {
-            "display": "flex"
+            "display": "flex",
+            "alignItems": "center",
         }
         joint_3_style = {
             "display": "flex"
