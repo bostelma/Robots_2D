@@ -59,7 +59,7 @@ class RobotTab(dcc.Tab):
                     html.Div(
                         [
                             html.Label(
-                                "Link length 1",
+                                "Link Length 1",
                                 style = {
                                     "whiteSpace": "nowrap",
                                     "flexShrink": 0,
@@ -74,6 +74,7 @@ class RobotTab(dcc.Tab):
                         ],
                         style = {
                             "display": "flex",
+                            "alignItems": "center",
                         }
                     ),
 
@@ -82,7 +83,7 @@ class RobotTab(dcc.Tab):
                     html.Div(
                         [
                             html.Label(
-                                "Link length 2",
+                                "Link Length 2",
                                 style = {
                                     "whiteSpace": "nowrap",
                                     "flexShrink": 0,
@@ -97,6 +98,7 @@ class RobotTab(dcc.Tab):
                         ],
                         style = {
                             "display": "flex",
+                            "alignItems": "center",
                         }
                     ),
 
@@ -105,7 +107,7 @@ class RobotTab(dcc.Tab):
                     html.Div(
                         [
                             html.Label(
-                                "Link length 3",
+                                "Link Length 3",
                                 style = {
                                     "whiteSpace": "nowrap",
                                     "flexShrink": 0,
@@ -121,6 +123,7 @@ class RobotTab(dcc.Tab):
                         id = "link-length-3-container",
                         style = {
                             "display": "flex",
+                            "alignItems": "center",
                         }
                     ),
                 ],
