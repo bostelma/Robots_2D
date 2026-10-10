@@ -258,11 +258,15 @@ app.layout = html.Div(
 
 @app.callback(
     Output("robot-graph", "figure"),
+    Output("link-length-3-container", "style"),
     Output("joint-3-container", "style"),
     Output("manipulability-measure-1", "value"),
     Output("manipulability-measure-2", "value"),
     Output("manipulability-measure-3", "value"),
     Input("robot-type", "value"),
+    Input("link-length-1", "value"),
+    Input("link-length-2", "value"),
+    Input("link-length-3", "value"),
     Input("joint-1", "value"),
     Input("joint-2", "value"),
     Input("joint-3", "value"),
@@ -270,17 +274,28 @@ app.layout = html.Div(
 )
 def update_robot(
     robot_type,
+    l1,
+    l2,
+    l3,
     q1,
     q2,
     q3,
     show_manipulability,
 ):
 
-    robot = RobotTab.create_robot(robot_type)
+    robot = RobotTab.create_robot(
+        robot_type,
+        l1 = l1,
+        l2 = l2,
+        l3 = l3
+    )
 
     if robot_type == "Robot2R":
 
         q = np.array([q1, q2])
+        link_length_3_style = {
+            "display": "none"
+        }
         joint_3_style = {
             "display": "none"
         }
@@ -288,6 +303,9 @@ def update_robot(
     elif robot_type == "Robot3R":
 
         q = np.array([q1, q2, q3])
+        link_length_3_style = {
+            "display": "flex"
+        }
         joint_3_style = {
             "display": "flex"
         }
@@ -306,6 +324,7 @@ def update_robot(
 
     return (
         figure,
+        link_length_3_style,
         joint_3_style,
         robot.manipulability_measure_1(),
         robot.manipulability_measure_2(),

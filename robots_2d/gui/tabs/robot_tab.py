@@ -59,6 +59,89 @@ class RobotTab(dcc.Tab):
                     html.Div(
                         [
                             html.Label(
+                                "Link length 1",
+                                style = {
+                                    "whiteSpace": "nowrap",
+                                    "flexShrink": 0,
+                                    "marginRight": "10px"
+                                }
+                            ),
+                            dcc.Input(
+                                id = "link-length-1",
+                                type = "number",
+                                value = 1.0,
+                            ),
+                        ],
+                        style = {
+                            "display": "flex",
+                        }
+                    ),
+
+                    html.Br(),
+
+                    html.Div(
+                        [
+                            html.Label(
+                                "Link length 2",
+                                style = {
+                                    "whiteSpace": "nowrap",
+                                    "flexShrink": 0,
+                                    "marginRight": "10px"
+                                }
+                            ),
+                            dcc.Input(
+                                id = "link-length-2",
+                                type = "number",
+                                value = 1.0,
+                            ),
+                        ],
+                        style = {
+                            "display": "flex",
+                        }
+                    ),
+
+                    html.Br(),
+
+                    html.Div(
+                        [
+                            html.Label(
+                                "Link length 3",
+                                style = {
+                                    "whiteSpace": "nowrap",
+                                    "flexShrink": 0,
+                                    "marginRight": "10px"
+                                }
+                            ),
+                            dcc.Input(
+                                id = "link-length-3",
+                                type = "number",
+                                value = 1.0,
+                            ),
+                        ],
+                        id = "link-length-3-container",
+                        style = {
+                            "display": "flex",
+                        }
+                    ),
+                ],
+                style = {
+                    "gap": "10px",
+                    "border": "1px solid #b0b0b0",
+                    "padding": "15px",
+                    "borderRadius": "5px",
+                    "width": "100%",
+                    "boxSizing": "border-box"
+                }
+            ),
+
+            html.Br(),
+
+            # Joint angles
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Label(
                                 "Joint 1",
                                 style = {
                                     "whiteSpace": "nowrap",
@@ -168,19 +251,25 @@ class RobotTab(dcc.Tab):
         )
 
     @classmethod
-    def create_robot(cls, robot_type: str) -> Robot:
+    def create_robot(
+        cls,
+        robot_type: str,
+        l1 = 1.0,
+        l2 = 1.0,
+        l3 = 1.0
+    ) -> Robot:
 
         if robot_type == "Robot2R":
             return Robot2R(
-                l1 = 1.0,
-                l2 = 1.0
+                l1 = l1,
+                l2 = l2
             )
 
         if robot_type == "Robot3R":
             return Robot3R(
-            l1 = 1.0,
-            l2 = 1.0,
-            l3 = 1.0
+            l1 = l1,
+            l2 = l2,
+            l3 = l3
         )
 
         raise ValueError(
