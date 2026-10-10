@@ -53,7 +53,7 @@ class RobotTab(dcc.Tab):
 
             html.Br(),
 
-            # Joint angles
+            # Link lengths
             html.Div(
                 [
                     html.Div(
