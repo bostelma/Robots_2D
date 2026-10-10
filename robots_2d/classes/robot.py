@@ -429,7 +429,10 @@ class Robot(ABC):
 
         # Full axis lengths for matplotlib
         width = 2 * np.sqrt(eigenvalues[1])
-        height = 2 * np.sqrt(eigenvalues[0])
+        if eigenvalues[0] <= 0:
+            height = 0.0
+        else:
+            height = 2 * np.sqrt(eigenvalues[0])
 
         # Orientation of major axis
         major_axis = eigenvectors[:, 0]
