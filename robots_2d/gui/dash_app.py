@@ -1,9 +1,6 @@
 import numpy as np
-import plotly.graph_objects as go
 from dash import Dash, Input, Output, State, dcc, html
 
-from robots_2d.classes.joint import JointType
-from robots_2d.classes.robot import Robot
 from robots_2d.gui.simulation import Simulation
 from robots_2d.gui.tabs.ik_tab import IKTab
 from robots_2d.gui.tabs.manipulability_tab import ManipulabilityTab
